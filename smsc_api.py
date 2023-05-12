@@ -1,6 +1,7 @@
 import contextvars
 import logging
 import typing
+import unittest.mock
 
 import asks
 import trio
@@ -96,7 +97,12 @@ async def main(env):
         "cost": cost,
         "fmt": answer_format,
     }
-    send_status = await request_smsc("POST", "send", payload=send_payload)
+    with unittest.mock.patch("__main__.request_smsc") as mock:
+        mock.return_value = {
+            "id": 302,
+            "cnt": 1,
+        }
+        send_status = await request_smsc("POST", "send", payload=send_payload)
 
     status_payload = {
         "phone": phones,
@@ -104,7 +110,14 @@ async def main(env):
     }
     if send_status and "id" in send_status:
         status_payload["id"] = send_status["id"]
-    delivery_status = await request_smsc("GET", "status", payload=status_payload)
+
+    with unittest.mock.patch("__main__.request_smsc") as mock:
+        mock.return_value = {
+            "status": 1,
+            "last_date": "12.05.2023 14:19:10",
+            "last_timestamp": 1683911950,
+        }
+        delivery_status = await request_smsc("GET", "status", payload=status_payload)
 
 
 if __name__ == "__main__":

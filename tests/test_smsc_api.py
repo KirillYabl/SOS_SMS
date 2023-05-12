@@ -1,4 +1,5 @@
 import pytest
+import unittest.mock
 
 import smsc_api
 
@@ -25,6 +26,7 @@ async def test_smsc_api_no_phones(config):
 @pytest.mark.trio
 async def test_smsc_api_wrong_api_method(config):
     send_payload = {
+        "phones": config["phones"],
         "mes": config["message"],
         "valid": config["lifetime"],
         "cost": config["cost"],
