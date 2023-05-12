@@ -1,2 +1,3 @@
 asks==3.0.0
 trio==0.22.0
+environs==9.5.0
