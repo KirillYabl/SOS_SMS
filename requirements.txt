@@ -3,3 +3,4 @@ trio==0.22.0
 environs==9.5.0
 pytest==trio-0.8.0
 quart-trio==0.10.0
+pydantic==1.10.7

@@ -5,7 +5,8 @@ import unittest.mock
 
 import asks
 import trio
-import environs
+
+from settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -81,21 +82,15 @@ async def request_smsc(
     return serialized_response
 
 
-async def main(env):
-    phones = ','.join(env.list("PHONES"))
-    message = env.str("MESSAGE")
-    lifetime = env.str("SMS_LIFETIME", 1)
-    only_show_cost = env.bool("ONLY_SHOW_COST", True)
-    cost = 1 if only_show_cost else None
-    answer_format = env.int("ANSWER_FORMAT", 3)
+async def main():
     logger.debug("red config")
 
     send_payload = {
-        "phones": phones,
-        "mes": message,
-        "valid": lifetime,
-        "cost": cost,
-        "fmt": answer_format,
+        "phones": settings.phones,
+        "mes": settings.message,
+        "valid": settings.lifetime,
+        "cost": settings.cost,
+        "fmt": settings.answer_format,
     }
     with unittest.mock.patch("__main__.request_smsc") as mock:
         mock.return_value = {
@@ -105,8 +100,8 @@ async def main(env):
         send_status = await request_smsc("POST", "send", payload=send_payload)
 
     status_payload = {
-        "phone": phones,
-        "fmt": answer_format
+        "phone": settings.phones,
+        "fmt": settings.answer_format
     }
     if send_status and "id" in send_status:
         status_payload["id"] = send_status["id"]
@@ -122,8 +117,6 @@ async def main(env):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    env = environs.Env()
-    env.read_env()
-    smsc_login = contextvars.ContextVar('login', default=env.str("SMSC_LOGIN"))
-    smsc_password = contextvars.ContextVar('password', default=env.str("SMSC_PASSWORD"))
-    trio.run(main, env)
+    smsc_login = contextvars.ContextVar('login', default=settings.smsc_login)
+    smsc_password = contextvars.ContextVar('password', default=settings.smsc_password)
+    trio.run(main)
