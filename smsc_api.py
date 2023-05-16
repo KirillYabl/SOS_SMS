@@ -1,10 +1,10 @@
+import asyncio
 import contextvars
 import logging
 import typing
 import unittest.mock
 
 import asks
-import trio
 
 from settings import settings
 
@@ -113,10 +113,11 @@ async def main():
             "last_timestamp": 1683911950,
         }
         delivery_status = await request_smsc("GET", "status", payload=status_payload)
+        logger.debug(delivery_status)
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     smsc_login = contextvars.ContextVar('login', default=settings.smsc_login)
     smsc_password = contextvars.ContextVar('password', default=settings.smsc_password)
-    trio.run(main)
+    asyncio.run(main())

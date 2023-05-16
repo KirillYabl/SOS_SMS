@@ -12,6 +12,7 @@ class Settings(pydantic.BaseSettings):
     only_show_cost: typing.Optional[bool] = True
     cost: typing.Optional[int] = None
     answer_format: typing.Optional[int] = 3
+    redis_url: typing.Optional[str] = "redis://localhost"
 
     @pydantic.validator("cost", always=True)
     def calculate_cost(cls, value, values):

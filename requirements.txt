@@ -1,6 +1,6 @@
 asks==3.0.0
-trio==0.22.0
 environs==9.5.0
-pytest==trio-0.8.0
-quart-trio==0.10.0
 pydantic==1.10.7
+pytest==7.3.1
+quart==0.18.4
+redis==4.5.5
