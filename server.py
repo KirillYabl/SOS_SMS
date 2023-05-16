@@ -68,24 +68,35 @@ async def create():
 @app.websocket("/ws")
 async def ws():
     while True:
+        sms_mailing_ids = await app.db.list_sms_mailings()
+        sms_mailings = await app.db.get_sms_mailings(*sms_mailing_ids)
         answer = {
             "msgType": "SMSMailingStatus",
             "SMSMailings": [
                 {
-                    "timestamp": 1123131392.734,
-                    "SMSText": "Сегодня гроза! Будьте осторожны!",
-                    "mailingId": "1",
-                    "totalSMSAmount": 100,
-                    "deliveredSMSAmount": 0,
-                    "failedSMSAmount": 0,
-                },
+                    "timestamp": time.time(),
+                    "SMSText": sms_mailing["text"],
+                    "mailingId": str(sms_mailing["sms_id"]),
+                    "totalSMSAmount": sms_mailing["phones_count"],
+                    "deliveredSMSAmount": len({
+                        phone: status
+                        for phone, status
+                        in sms_mailing["phones"].items()
+                        if status == "delivered"
+                    }),
+                    "failedSMSAmount": len({
+                        phone: status
+                        for phone, status
+                        in sms_mailing["phones"].items()
+                        if status == "failed"
+                    }),
+                }
+                for sms_mailing
+                in sms_mailings
             ]
         }
-        for i in range(101):
-            answer["SMSMailings"][0]["timestamp"] = time.time()
-            answer["SMSMailings"][0]["deliveredSMSAmount"] = i
-            await quart.websocket.send_json(answer)
-            await asyncio.sleep(1)
+        await quart.websocket.send_json(answer)
+        await asyncio.sleep(1)
 
 
 if __name__ == "__main__":
