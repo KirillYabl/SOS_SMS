@@ -1,43 +1,43 @@
 import pytest
-import unittest.mock
 
 import smsc_api
+from settings import settings
 
 
-@pytest.mark.trio
-async def test_smsc_api_no_phones(config):
+@pytest.mark.asyncio
+async def test_smsc_api_no_phones():
     send_payload = {
-        "mes": config["message"],
-        "valid": config["lifetime"],
-        "cost": config["cost"],
-        "fmt": config["answer_format"],
+        "mes": settings.message,
+        "valid": settings.lifetime,
+        "cost": settings.cost,
+        "fmt": settings.answer_format,
     }
 
     with pytest.raises(smsc_api.SmscApiError):
         await smsc_api.request_smsc(
             "POST",
             "send",
-            login=config["smsc_login"],
-            password=config["smsc_password"],
+            login=settings.smsc_login,
+            password=settings.smsc_password,
             payload=send_payload
         )
 
 
-@pytest.mark.trio
-async def test_smsc_api_wrong_api_method(config):
+@pytest.mark.asyncio
+async def test_smsc_api_wrong_api_method():
     send_payload = {
-        "phones": config["phones"],
-        "mes": config["message"],
-        "valid": config["lifetime"],
-        "cost": config["cost"],
-        "fmt": config["answer_format"],
+        "phones": settings.phones,
+        "mes": settings.message,
+        "valid": settings.lifetime,
+        "cost": settings.cost,
+        "fmt": settings.answer_format,
     }
 
     with pytest.raises(smsc_api.SmscApiError):
         await smsc_api.request_smsc(
             "POST",
             "notexist",
-            login=config["smsc_login"],
-            password=config["smsc_password"],
+            login=settings.smsc_login,
+            password=settings.smsc_password,
             payload=send_payload
         )
