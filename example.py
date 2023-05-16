@@ -5,7 +5,7 @@ import argparse
 from db import Database
 
 
-def create_argparser():
+def create_argparser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description='Redis database usage example')
     parser.add_argument(
         '--address',

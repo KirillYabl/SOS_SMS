@@ -1,16 +1,18 @@
 import time
 import json
-from typing import Optional
+import typing
+
+import redis.asyncio
 
 
-def _clean_key(key):
+def _clean_key(key: typing.Any) -> str:
     cleaned_key = str(key)
     if '_' in cleaned_key:
         raise ValueError('Forbidden symbol `_` found in database key.')
     return cleaned_key
 
 
-def _clean_sms_status(value):
+def _clean_sms_status(value: typing.Any) -> str:
     cleaned_value = str(value).lower()
     if cleaned_value not in ['delivered', 'failed', 'pending']:
         raise ValueError(f'Unknown status found: `{cleaned_value}`. Wanted one of delivered, failed or pending.')
@@ -28,10 +30,10 @@ class Database:
         phones_for_sms_mailing_{sms_id} —> hset {phone}:{status} (статус доставки)
     """
 
-    def __init__(self, redis):
+    def __init__(self, redis: redis.asyncio.Redis):
         self.redis = redis
 
-    async def add_sms_mailing(self, sms_id: str, phones: list, text: str, created_at: Optional[float] = None):
+    async def add_sms_mailing(self, sms_id: str, phones: list, text: str, created_at: typing.Optional[float] = None):
         """Add to Redis all records required to represent new SMS mailing."""
         sms_id_key = _clean_key(sms_id)
 
@@ -55,7 +57,7 @@ class Database:
 
             await pipe.execute()
 
-    async def get_pending_sms_list(self):
+    async def get_pending_sms_list(self) -> list[tuple[str, str]]:
         """Get from Redis all pending messages."""
         keys = await self.redis.keys('phones_for_sms_mailing_*')
 
@@ -74,7 +76,7 @@ class Database:
 
         return pending_sms_list
 
-    async def update_sms_status_in_bulk(self, sms_list):
+    async def update_sms_status_in_bulk(self, sms_list: list[tuple[str, str, str]]):
         """Receives list of tuples (sms_id, phone, status)."""
         async with self.redis.pipeline(transaction=True) as pipe:
             for sms_id, phone, status in sms_list:
@@ -85,7 +87,7 @@ class Database:
 
             await pipe.execute()
 
-    async def get_sms_mailings(self, *sms_ids: str) -> list:
+    async def get_sms_mailings(self, *sms_ids: str) -> list[dict[str, typing.Any]]:
         """For each mailing in sms_ids load all data from Redis and return dict."""
         pipe = self.redis.pipeline()
         for sms_id in sms_ids:
@@ -112,7 +114,7 @@ class Database:
 
         return mailings
 
-    async def list_sms_mailings(self):
+    async def list_sms_mailings(self) -> list[str]:
         """Return list of sms_id for all registered SMS mailings."""
         keys = await self.redis.keys(f'sms_mailing_*')
         return [key.split('_')[-1] for key in keys]
