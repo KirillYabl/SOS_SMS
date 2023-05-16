@@ -9,7 +9,7 @@ class Settings(pydantic.BaseSettings):
     phones: str
     message: str
     lifetime: typing.Optional[int] = 1
-    only_show_cost: typing.Optional[bool] = True
+    only_show_cost: typing.Optional[bool] = False
     cost: typing.Optional[int] = None
     answer_format: typing.Optional[int] = 3
     redis_url: typing.Optional[str] = "redis://localhost"
